@@ -3,8 +3,13 @@
 
 import math
 from collections import namedtuple
+from operator import itemgetter
 
 Customer = namedtuple("Customer", ['index', 'demand', 'x', 'y','angle','dist'])
+
+def getKey(customer):
+    return customer.angle
+
 
 def length(customer1, customer2):
     return math.sqrt((customer1.x - customer2.x)**2 + (customer1.y - customer2.y)**2)
@@ -42,11 +47,39 @@ def solve_it(input_data):
         y = float(parts[2])
         dist = math.sqrt((customers[0].x - x)**2 + (customers[0].y - y)**2)
         angle = math.atan2(customers[0].y - y,customers[0].x - x)
+        if ( angle < 0 ): angle = angle + 2*math.pi
         customers.append(Customer(i-1, int(parts[0]),x,y,angle,dist))
 
-    print(customers)
+
     #the depot is always the first customer in the input
     depot = customers[0] 
+
+    # Categorize customers depending on their angle
+    sorted_by_angle = sorted(customers,key=getKey)
+
+    remaining_customers = sorted_by_angle.copy()
+    remaining_customers.remove(depot)
+    vehicle_clusters = []
+
+    print(remaining_customers)
+
+    # Assign customers to clusters
+    for v in range(0,vehicle_count):
+        vehicle_clusters.append([])
+        remaining_capacity = vehicle_capacity
+        used = []
+        for customer in remaining_customers:
+            if ( customer.demand <= remaining_capacity):
+                vehicle_clusters[v].append(customer.index)
+                remaining_capacity = remaining_capacity - customer.demand
+                used.append(customer)
+            else:
+                break
+        remaining_customers.remove(used)
+
+    print(vehicle_clusters)
+
+
 
     # build a trivial solution
     # assign customers to vehicles starting by the largest customer demands
